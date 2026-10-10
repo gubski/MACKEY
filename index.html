@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Belarus: Climate and Forests</title>
+<style>
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+:root{
+  --ink:#0b1020;--muted:#566079;--blue:#1f5bff;--indigo:#4a35e8;--violet:#8b3df0;--coral:#ff4d6d;--amber:#ffb400;--green:#0fae6b;--teal:#00b5c9;
+  --glass:rgba(255,255,255,.62);--r:1.6rem;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(14px,calc(.55vw + .9vmin + 8px),22px);-webkit-text-size-adjust:100%}
+body{height:100vh;height:100dvh;overflow:hidden;background:#fff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+/* ---------- background: white with floating gradient ---------- */
+.bg{position:fixed;inset:0;overflow:hidden;z-index:0;background:#fff}
+.bg i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;will-change:transform}
+.bg i:nth-child(1){width:60vmax;height:60vmax;left:-18vmax;top:-24vmax;background:radial-gradient(circle,#6f9bff,transparent 65%);animation:f1 28s ease-in-out infinite alternate}
+.bg i:nth-child(2){width:55vmax;height:55vmax;right:-18vmax;top:-10vmax;background:radial-gradient(circle,#59e0b0,transparent 65%);animation:f2 32s ease-in-out infinite alternate}
+.bg i:nth-child(3){width:50vmax;height:50vmax;left:10vmax;bottom:-28vmax;background:radial-gradient(circle,#ffc873,transparent 65%);animation:f3 30s ease-in-out infinite alternate}
+.bg i:nth-child(4){width:46vmax;height:46vmax;right:-8vmax;bottom:-24vmax;background:radial-gradient(circle,#c2a0ff,transparent 65%);animation:f1 36s ease-in-out infinite alternate-reverse}
+@keyframes f1{to{transform:translate(12vmax,8vmax) scale(1.15)}}
+@keyframes f2{to{transform:translate(-14vmax,10vmax) scale(.9)}}
+@keyframes f3{to{transform:translate(10vmax,-9vmax) scale(1.2)}}
+
+/* ---------- slide engine ---------- */
+#deck{position:fixed;inset:0;z-index:1}
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:clamp(14px,3.5vmin,44px) clamp(16px,5vw,76px) 5.2rem;
+  opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;
+  transform:var(--in,none);clip-path:var(--cin,inset(0));filter:var(--fin,none);
+  transition:transform .95s var(--ease),opacity .75s ease,clip-path .95s var(--ease),filter .8s ease,visibility 0s linear .95s}
+.slide.past{transform:var(--out,none);clip-path:var(--cout,inset(0));filter:var(--fout,none)}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:none;clip-path:var(--cact,inset(0));filter:none;
+  transition:transform .95s var(--ease),opacity .75s ease,clip-path .95s var(--ease),filter .8s ease,visibility 0s}
+[data-t=zoom]{--in:scale(.86);--out:scale(1.14);--fin:blur(16px);--fout:blur(16px)}
+[data-t=up]{--in:translateY(16vh);--out:translateY(-16vh)}
+[data-t=flip]{--in:perspective(1800px) rotateY(-100deg);--out:perspective(1800px) rotateY(100deg)}
+[data-t=diag]{--cin:polygon(0 0,0 0,0 100%,0 100%);--cout:polygon(100% 0,100% 0,100% 100%,100% 100%);--cact:polygon(0 0,100% 0,100% 100%,0 100%)}
+[data-t=circle]{--cin:circle(0% at 50% 55%);--cout:circle(0% at 50% 45%);--cact:circle(150% at 50% 50%)}
+[data-t=cube]{--in:perspective(2000px) translateX(40%) rotateY(55deg);--out:perspective(2000px) translateX(-40%) rotateY(-55deg)}
+[data-t=skew]{--in:translateX(35%) skewX(-14deg);--out:translateX(-35%) skewX(14deg)}
+[data-t=curtain]{--cin:inset(0 50% 0 50%);--cout:inset(0 50% 0 50%)}
+[data-t=flipx]{--in:perspective(1800px) rotateX(90deg);--out:perspective(1800px) rotateX(-90deg)}
+[data-t=spiral]{--in:rotate(-10deg) scale(.6);--out:rotate(10deg) scale(1.3)}
+[data-t=blinds]{--cin:inset(50% 0 50% 0);--cout:inset(50% 0 50% 0)}
+[data-t=fold]{--in:perspective(1800px) rotate3d(1,1,0,70deg) scale(.7);--out:perspective(1800px) rotate3d(1,1,0,-70deg) scale(.7)}
+[data-t=wipe]{--cin:inset(0 0 100% 0);--cout:inset(100% 0 0 0)}
+[data-t=drop]{--in:translateY(-30vh) scale(.9);--out:translateY(30vh) scale(.9)}
+
+/* staggered entrance (uses individual transform props so animations don't clash) */
+.rise{opacity:0;translate:0 26px;scale:.97;transition:opacity .8s ease,translate .9s var(--ease),scale .9s var(--ease);transition-delay:0s}
+.slide.active .rise{opacity:1;translate:0 0;scale:1;transition-delay:calc(var(--i,0)*90ms + 320ms)}
+
+/* ---------- layout ---------- */
+.in{width:100%;max-width:1280px;margin:0 auto;position:relative}
+.cols{display:grid;grid-template-columns:1.08fr 1fr;gap:clamp(16px,3vw,46px);align-items:center}
+.cols.rev{grid-template-columns:1fr 1.08fr}
+.stack{display:flex;flex-direction:column;gap:clamp(10px,1.6vmin,20px)}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;align-self:flex-start;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  padding:.4rem .85rem;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid rgba(20,30,60,.08);color:var(--indigo);backdrop-filter:blur(10px)}
+.eyebrow::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--coral))}
+h1{font-size:clamp(2.4rem,7.2vmin + 1.5vw,5.4rem);line-height:1.02;letter-spacing:-.035em;font-weight:800}
+h2{font-size:clamp(1.7rem,4.4vmin + .9vw,3.3rem);line-height:1.06;letter-spacing:-.03em;font-weight:780}
+h3{font-size:1.1rem;letter-spacing:-.01em;font-weight:700}
+.grad{background:linear-gradient(95deg,var(--blue),var(--violet) 45%,var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-g{background:linear-gradient(95deg,var(--green),var(--teal) 55%,var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:1.08rem;line-height:1.5;color:var(--muted);max-width:42ch}
+p,li{line-height:1.5}
+.small{font-size:.8rem;color:var(--muted)}
+ul.bul{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+ul.bul li{position:relative;padding-left:1.5rem;font-size:1rem}
+ul.bul li::before{content:"";position:absolute;left:0;top:.5em;width:.7rem;height:.7rem;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--violet))}
+ul.bul.g li::before{background:linear-gradient(135deg,var(--green),var(--teal))}
+
+/* ---------- containers ---------- */
+.glass{background:var(--glass);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(255,255,255,.85);
+  border-radius:var(--r);box-shadow:0 18px 50px rgba(30,50,110,.12),inset 0 1px 0 #fff;padding:1.2rem 1.4rem}
+.rim{position:relative}
+.rim::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;pointer-events:none;
+  background:conic-gradient(from var(--a),#0b0b12,#ff3b6b,#ffb400,#27d17f,#1f9bff,#8b5cf6,#0b0b12);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:spin 9s linear infinite}
+@keyframes spin{to{--a:360deg}}
+.solid{border-radius:var(--r);padding:1.2rem 1.4rem;color:#fff;box-shadow:0 20px 45px rgba(20,30,90,.22)}
+.c-blue{background:linear-gradient(145deg,#2a6bff,#4a35e8)}
+.c-sky{background:linear-gradient(145deg,#37b7ff,#2a6bff)}
+.c-red{background:linear-gradient(145deg,#ff6b6b,#e62e63)}
+.c-amber{background:linear-gradient(145deg,#ffc83d,#ff8a00);color:#2a1700}
+.c-green{background:linear-gradient(145deg,#2ad08a,#078c5c)}
+.c-teal{background:linear-gradient(145deg,#1bd0e0,#0a7fb8)}
+.c-violet{background:linear-gradient(145deg,#a45cff,#5b34d9)}
+.c-night{background:linear-gradient(145deg,#26337a,#0f1b4d)}
+.tile-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.big{font-size:2.2rem;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.tile-sub{font-size:.85rem;opacity:.9;margin-top:.25rem}
+.pill{display:inline-block;font-size:.78rem;font-weight:650;padding:.3rem .7rem;border-radius:99px;background:rgba(255,255,255,.7);border:1px solid rgba(20,30,60,.08)}
+
+/* ---------- photo frames ---------- */
+.photo{position:relative;border-radius:1.6rem;overflow:hidden;aspect-ratio:var(--ar,4/3);width:100%;
+  background:linear-gradient(135deg,#dbe6ff,#e4fff2 55%,#fff0d6);box-shadow:0 22px 55px rgba(25,40,100,.18);border:1px solid rgba(255,255,255,.9)}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease}
+.photo.ok img{opacity:1}
+.photo .ph{position:absolute;inset:0;display:flex;flex-direction:column;gap:.4rem;align-items:center;justify-content:center;color:#5b6a8f;font-size:.75rem;text-align:center;padding:1rem}
+.photo .ph svg{width:2.2rem;height:2.2rem;opacity:.6}
+.photo .ph code{font-size:.78rem;background:rgba(255,255,255,.7);padding:.15rem .5rem;border-radius:.5rem;color:#2b3a67}
+.photo.ok .ph{display:none}
+.photo figcaption{position:absolute;left:.7rem;right:.7rem;bottom:.7rem;font-size:.74rem;line-height:1.35;color:#fff;padding:.45rem .7rem;border-radius:.9rem;
+  background:rgba(10,16,40,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.arch{border-radius:50% 50% 1.6rem 1.6rem/38% 38% 1.6rem 1.6rem}
+.round{border-radius:50%}
+.round figcaption{left:18%;right:18%;bottom:9%;text-align:center}
+
+/* ---------- controls ---------- */
+.bar{position:fixed;left:0;top:0;height:4px;z-index:20;background:linear-gradient(90deg,var(--blue),var(--violet),var(--coral),var(--amber));width:0;transition:width .7s var(--ease)}
+.nav{position:fixed;left:50%;bottom:max(1rem,env(safe-area-inset-bottom));translate:-50% 0;z-index:20;display:flex;align-items:center;gap:.9rem;
+  padding:.5rem .7rem;border-radius:99px;background:rgba(255,255,255,.7);backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
+  border:1px solid rgba(255,255,255,.9);box-shadow:0 12px 34px rgba(30,50,110,.18)}
+.nav button{width:2.3rem;height:2.3rem;border-radius:50%;display:grid;place-items:center;background:#fff;box-shadow:0 2px 8px rgba(20,30,70,.12);transition:transform .2s,background .2s}
+.nav button:hover{transform:scale(1.08);background:#eef3ff}
+.nav button:disabled{opacity:.35;cursor:default;transform:none}
+.nav svg{width:1.05rem;height:1.05rem}
+.dots{display:flex;gap:.38rem;align-items:center}
+.dots b{width:.45rem;height:.45rem;border-radius:99px;background:rgba(20,30,70,.18);cursor:pointer;transition:all .4s var(--ease)}
+.dots b.on{width:1.5rem;background:linear-gradient(90deg,var(--blue),var(--coral))}
+.count{font-size:.75rem;font-weight:700;color:var(--muted);min-width:3.2rem;text-align:center;font-variant-numeric:tabular-nums}
+.hint{position:fixed;top:1rem;right:1rem;z-index:20;font-size:.78rem;padding:.55rem .9rem;border-radius:99px;background:rgba(255,255,255,.8);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(30,50,110,.14);color:var(--muted);transition:opacity .8s}
+.hint.off{opacity:0;pointer-events:none}
+
+/* ---------- more-info buttons & panels ---------- */
+.more{display:inline-flex;align-items:center;gap:.5rem;align-self:flex-start;font-weight:650;font-size:.88rem;padding:.6rem 1.05rem;border-radius:99px;color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--violet));box-shadow:0 10px 24px rgba(74,53,232,.35);transition:transform .2s,box-shadow .2s}
+.more:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(74,53,232,.4)}
+.more.g{background:linear-gradient(135deg,var(--green),var(--teal));box-shadow:0 10px 24px rgba(15,174,107,.35)}
+.panel{overflow:hidden;max-height:0;opacity:0;transition:max-height .6s var(--ease),opacity .4s ease,margin .4s}
+.panel.open{max-height:16rem;opacity:1}
+.panel .glass{margin-top:.2rem;font-size:.92rem}
+
+/* ---------- title ---------- */
+.floaty{animation:bob 6s ease-in-out infinite}
+.floaty.d2{animation-duration:7.5s;animation-delay:-2s}
+.floaty.d3{animation-duration:8.5s;animation-delay:-4s}
+@keyframes bob{50%{transform:translateY(-12px) rotate(.6deg)}}
+.chips{position:relative}
+.chip{position:absolute;z-index:3;padding:.7rem 1rem;border-radius:1.2rem;font-size:.82rem;font-weight:650}
+.chip b{display:block;font-size:1.35rem;letter-spacing:-.02em}
+
+/* ---------- overview cards ---------- */
+.big-card{position:relative;cursor:pointer;min-height:clamp(9rem,28vmin,15rem);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;transition:transform .35s var(--ease),box-shadow .35s}
+.big-card:hover{transform:translateY(-6px) rotate(-.4deg);box-shadow:0 30px 60px rgba(20,30,90,.3)}
+.big-card h2{font-size:clamp(1.6rem,3.6vmin + .8vw,2.6rem)}
+.big-card .num{position:absolute;right:1rem;top:-.4rem;font-size:7rem;font-weight:900;opacity:.14;letter-spacing:-.06em}
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.agenda div{display:flex;gap:.7rem;align-items:center;font-size:.9rem;font-weight:600;padding:.65rem .9rem;border-radius:1rem;background:rgba(255,255,255,.7);border:1px solid rgba(20,30,60,.06);cursor:pointer;transition:transform .2s}
+.agenda div:hover{transform:translateX(4px)}
+.agenda span{width:1.7rem;height:1.7rem;border-radius:.6rem;display:grid;place-items:center;font-size:.78rem;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet))}
+
+/* ---------- 3D cube ---------- */
+.scene{--s:clamp(11rem,34vmin,18rem);width:var(--s);height:var(--s);perspective:1100px;margin:1.2rem auto}
+.cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:cube 20s linear infinite}
+.scene:hover .cube{animation-play-state:paused}
+@keyframes cube{from{transform:rotateX(-18deg) rotateY(0)}to{transform:rotateX(-18deg) rotateY(-360deg)}}
+.face{position:absolute;inset:0;border-radius:1.1rem;padding:1.1rem;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.face b{font-size:1.25rem;letter-spacing:-.02em}
+.face span{font-size:.8rem;opacity:.92;margin-top:.2rem;line-height:1.3}
+.f1{transform:translateZ(calc(var(--s)/2))}.f2{transform:rotateY(90deg) translateZ(calc(var(--s)/2))}
+.f3{transform:rotateY(180deg) translateZ(calc(var(--s)/2))}.f4{transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}
+.f5{transform:rotateX(90deg) translateZ(calc(var(--s)/2))}.f6{transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+
+/* ---------- gradient slider (slide 4) ---------- */
+.gbar{position:relative;height:1.1rem;border-radius:99px;background:linear-gradient(90deg,#ffb36b,#ffe29a 30%,#9fd8ff 65%,#4a6bff);box-shadow:inset 0 2px 6px rgba(0,0,0,.12)}
+.gknob{position:absolute;top:50%;width:1.9rem;height:1.9rem;border-radius:50%;background:#fff;border:3px solid var(--indigo);translate:-50% -50%;box-shadow:0 6px 16px rgba(20,30,90,.3);left:0}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2.4rem;background:transparent;position:relative;z-index:2;cursor:pointer;margin:-1.75rem 0 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:2.2rem;height:2.2rem;opacity:0}
+input[type=range]::-moz-range-thumb{width:2.2rem;height:2.2rem;opacity:0;border:0}
+input[type=range]::-webkit-slider-runnable-track{height:2.4rem;background:transparent}
+input[type=range]::-moz-range-track{height:2.4rem;background:transparent}
+.glabels{display:flex;justify-content:space-between;font-weight:700;font-size:.9rem;margin-bottom:.7rem}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+
+/* ---------- seasons ---------- */
+.snow{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit}
+.snow i{position:absolute;top:-8%;background:#fff;border-radius:50%;opacity:.85;animation:fall linear infinite}
+@keyframes fall{to{transform:translate(30px,120vh)}}
+.tl{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-top:1rem}
+.tl::before{content:"";position:absolute;left:6%;right:6%;top:1.05rem;height:6px;border-radius:9px;background:rgba(20,30,70,.1)}
+.tl::after{content:"";position:absolute;left:6%;top:1.05rem;height:6px;border-radius:9px;width:0;background:linear-gradient(90deg,#8ad6ff,#ff9ec4,#4ddf9d);transition:width 1.8s var(--ease) .8s}
+.slide.active .tl::after{width:88%}
+.tl .n{position:relative;z-index:2;text-align:center;font-size:.82rem}
+.tl .n i{display:grid;place-items:center;margin:0 auto .5rem;width:2.2rem;height:2.2rem;border-radius:50%;background:#fff;border:3px solid var(--green);font-style:normal;font-weight:800;font-size:.8rem;box-shadow:0 6px 14px rgba(20,60,50,.2)}
+.tl .n b{display:block;font-size:.95rem}
+.scale{position:relative;height:3.4rem;margin:2.6rem 0 1.8rem;border-radius:1rem;background:linear-gradient(90deg,#dff1ff,#fff6cf 55%,#ffd6a0);box-shadow:inset 0 2px 8px rgba(0,0,0,.08)}
+.scale .band{position:absolute;top:.5rem;bottom:.5rem;border-radius:.7rem;transform-origin:left;scale:0 1;transition:scale 1.3s var(--ease) .7s}
+.slide.active .scale .band{scale:1 1}
+.scale .band em{position:absolute;top:-1.9rem;left:0;white-space:nowrap;font-style:normal;font-size:.72rem;font-weight:700;color:var(--ink)}
+.scale .tick{position:absolute;top:100%;font-size:.7rem;color:var(--muted);translate:-50% .3rem}
+.sun{position:absolute;right:-2.2rem;top:-2.2rem;width:8rem;height:8rem;opacity:.55;border-radius:50%;background:radial-gradient(circle,#ffe58a,#ffb400 60%,transparent 62%);animation:pulse 5s ease-in-out infinite;opacity:.9}
+.sun::after{content:"";position:absolute;inset:-1.6rem;border-radius:50%;border:2px dashed rgba(255,170,0,.5);animation:rot 30s linear infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+@keyframes rot{to{transform:rotate(360deg)}}
+.chart path.line{fill:none;stroke:url(#ag);stroke-width:6;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.2s var(--ease) .8s}
+.slide.active .chart path.line{stroke-dashoffset:0}
+.chart .pt{opacity:0;transition:opacity .6s ease 1.8s}
+.slide.active .chart .pt{opacity:1}
+
+/* ---------- precipitation ---------- */
+.ringbox{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.4rem}
+.ringbox svg{width:7.2rem;height:7.2rem;rotate:-90deg}
+.ring-bg{fill:none;stroke:rgba(20,30,70,.1);stroke-width:12}
+.ring-fg{fill:none;stroke-width:12;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1.6s var(--ease) .8s}
+.slide.active .ring-fg{stroke-dashoffset:calc(326.7 * (1 - var(--p)))}
+.ringbox .mid{position:absolute;display:grid;place-items:center;width:7.2rem;height:7.2rem;font-weight:800;font-size:1.3rem;letter-spacing:-.02em}
+.ringwrap{position:relative;display:grid;place-items:center}
+.gauge{width:100%;align-self:stretch;height:7.2rem;position:relative;border-radius:1.2rem;background:linear-gradient(180deg,#e6f3ff,#cfe6ff);overflow:hidden;box-shadow:inset 0 3px 10px rgba(0,60,150,.15)}
+.gauge .fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#4aa8ff,#1f5bff);transition:height 1.6s var(--ease) .8s}
+.slide.active .gauge .fill{height:65%}
+.gauge .fill::before{content:"";position:absolute;left:0;right:0;top:-.5rem;height:1rem;background:radial-gradient(circle at 50% 100%,#4aa8ff 60%,transparent 62%) 0 0/1.6rem 1rem repeat-x;animation:wave 3s linear infinite}
+@keyframes wave{to{background-position:1.6rem 0}}
+.gauge span{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.05rem;white-space:nowrap;text-shadow:0 2px 10px rgba(0,30,120,.5);z-index:2}
+
+/* ---------- toggle (trends) ---------- */
+.switch{display:inline-flex;padding:.3rem;border-radius:99px;background:rgba(255,255,255,.75);border:1px solid rgba(20,30,60,.08);align-self:flex-start;position:relative}
+.switch button{position:relative;z-index:2;padding:.55rem 1.1rem;font-weight:650;font-size:.88rem;border-radius:99px;color:var(--muted);transition:color .3s}
+.switch button.on{color:#fff}
+.switch .slider{position:absolute;z-index:1;top:.3rem;bottom:.3rem;left:.3rem;border-radius:99px;background:linear-gradient(135deg,var(--coral),var(--amber));transition:all .5s var(--ease)}
+.trend{display:grid;grid-template-columns:3rem 1fr;gap:.9rem;align-items:center}
+.trend .ico{width:3rem;height:3rem;border-radius:1rem;display:grid;place-items:center;font-size:1.4rem;background:linear-gradient(135deg,#fff,#eef3ff);box-shadow:0 6px 16px rgba(20,30,90,.14)}
+.trend .tx{position:relative;min-height:2.6rem}
+.trend .tx>div{position:absolute;inset:0;transition:opacity .5s,translate .6s var(--ease)}
+.trend .tx>div:last-child{opacity:0;translate:0 12px}
+.trends.warm .tx>div:first-child{opacity:0;translate:0 -12px}
+.trends.warm .tx>div:last-child{opacity:1;translate:0 0}
+
+/* ---------- forests ---------- */
+.orbs{display:grid;grid-template-columns:1fr 1fr;gap:clamp(.6rem,1.6vmin,1.2rem);justify-items:center}
+.orb{--d:clamp(7.2rem,19vmin,11rem);width:var(--d);height:var(--d);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:.6rem;
+  background:radial-gradient(circle at 30% 24%,rgba(255,255,255,.85),rgba(255,255,255,0) 28%),radial-gradient(circle at 50% 55%,var(--c1),var(--c2));
+  box-shadow:inset -10px -14px 28px rgba(0,0,0,.22),0 22px 40px var(--sh,rgba(15,100,70,.3))}
+.orb b{font-size:1.6rem;letter-spacing:-.03em;line-height:1}
+.orb span{font-size:.72rem;margin-top:.25rem;line-height:1.2;max-width:8ch;opacity:.95}
+.pick{display:flex;flex-direction:column;gap:.5rem}
+.pick button{display:flex;align-items:center;gap:.8rem;text-align:left;padding:.65rem .9rem;border-radius:1.1rem;background:rgba(255,255,255,.7);border:1px solid rgba(20,30,60,.07);transition:transform .25s var(--ease),background .25s,box-shadow .25s}
+.pick button:hover{transform:translateX(5px)}
+.pick button.on{background:#fff;box-shadow:0 10px 26px rgba(20,40,100,.16);transform:translateX(8px)}
+.pick .sw{width:1.1rem;height:1.1rem;border-radius:.4rem;flex:none}
+.pick b{font-size:.92rem}.pick small{display:block;font-size:.74rem;color:var(--muted)}
+.donut{position:relative;width:100%;max-width:15rem;aspect-ratio:1;margin:0 auto}
+.donut svg{width:100%;height:100%;rotate:-90deg;overflow:visible}
+.donut circle{fill:none;stroke-width:22;transition:stroke-width .4s var(--ease),opacity .4s,stroke-dasharray 1.2s var(--ease)}
+.donut .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1.1}
+.donut .c b{font-size:2rem;letter-spacing:-.03em;display:block}
+.donut .c span{font-size:.72rem;color:var(--muted);max-width:7ch;display:block;margin:0 auto}
+
+/* ---------- parks: book bookmarks ---------- */
+.book{display:grid;grid-template-columns:auto 1fr;align-items:stretch}
+.marks{display:flex;flex-direction:column;gap:.5rem;padding-top:1.4rem;position:relative;z-index:2;margin-right:-1px}
+.mark{writing-mode:horizontal-tb;display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem .8rem .9rem;border-radius:1.1rem 0 0 1.1rem;font-weight:700;font-size:.85rem;color:#fff;
+  box-shadow:-6px 8px 18px rgba(20,30,90,.18);transform:translateX(.9rem);transition:transform .4s var(--ease),filter .3s;filter:saturate(.75) brightness(.97);cursor:pointer;text-align:left;min-width:9rem}
+.mark:hover{transform:translateX(.3rem)}
+.mark.on{transform:translateX(0);filter:none}
+.page{border-radius:0 1.6rem 1.6rem 1.6rem;background:linear-gradient(135deg,#fff,#f6f9ff);box-shadow:0 24px 60px rgba(20,30,90,.2),inset 0 0 0 1px rgba(20,30,80,.05);padding:1.4rem;display:grid;grid-template-columns:1.1fr 1fr;gap:1.4rem;align-items:center;position:relative}
+.page::before{content:"";position:absolute;left:50%;top:6%;bottom:6%;width:1px;background:linear-gradient(transparent,rgba(20,30,80,.12),transparent)}
+.park-t{transition:opacity .35s,translate .45s var(--ease)}
+.park-t.swap{opacity:0;translate:0 10px}
+
+/* ---------- misc ---------- */
+.src li{font-size:.9rem;padding:.45rem .75rem;border-radius:.8rem;background:rgba(255,255,255,.7);border:1px solid rgba(20,30,60,.06);list-style:none}
+.src{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.take{counter-reset:t;display:flex;flex-direction:column;gap:.7rem}
+.take li{list-style:none;counter-increment:t;display:grid;grid-template-columns:2.2rem 1fr;gap:.8rem;align-items:start;font-size:.98rem}
+.take li::before{content:counter(t);display:grid;place-items:center;width:2.2rem;height:2.2rem;border-radius:.8rem;color:#fff;font-weight:800;font-size:.9rem;background:linear-gradient(135deg,var(--green),var(--teal))}
+.tilt{transition:transform .25s ease}
+.solo{grid-template-columns:minmax(0,52rem)!important;justify-content:center}
+.page.noph{grid-template-columns:1fr}.page.noph::before{display:none}
+
+@media (max-width:860px){
+  .slide{align-items:flex-start;padding-bottom:5.6rem}
+  .in{max-height:100%;overflow-y:auto;overflow-x:hidden;padding:.3rem .1rem 1rem;scrollbar-width:none}
+  .in::-webkit-scrollbar{display:none}
+  .cols:not(.keep),.cols.rev:not(.keep),.page{grid-template-columns:1fr!important}
+  .page::before{display:none}
+  .photo{--ar:16/10!important}
+  .agenda,.src{grid-template-columns:1fr}
+  .count,.hint{display:none}
+  .dots b:nth-child(n){display:none}.dots b.on{display:block}
+  .chip{display:none}
+  .book{grid-template-columns:1fr}
+  .marks{flex-direction:row;overflow-x:auto;padding:0 0 .6rem}
+  .mark{border-radius:1rem;min-width:max-content;transform:none!important}
+  .page{border-radius:1.4rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}}
+</style>
+</head>
+<body>
+<div class="bg"><i></i><i></i><i></i><i></i></div>
+<div class="bar" id="bar"></div>
+<div class="hint" id="hint">← → keys · swipe · or use the arrows</div>
+
+<main id="deck">
+
+<!-- 1. TITLE -->
+<section class="slide" data-t="zoom"><div class="in cols">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Geography of Belarus</span>
+    <h1 class="rise" style="--i:1">Belarus:<br><span class="grad">Climate</span> &amp; <span class="grad-g">Forests</span></h1>
+    <p class="lead rise" style="--i:2">A moderately continental climate, mild and humid all year, and a country where roughly four tenths of the land is woodland.</p>
+    <div class="rise" style="--i:3"><span class="pill">Use ← → or swipe to move</span></div>
+  </div>
+  <div class="chips rise" style="--i:2">
+    <figure class="photo arch" data-img="title.jpg" style="--ar:4/5;max-width:24rem;margin-left:auto"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg><span>Title photo</span><code>title.jpg</code></div><figcaption>Belarusian forest landscape</figcaption></figure>
+    <div class="chip glass floaty" style="left:-1%;top:12%"><b class="grad-g">40–43%</b>forest cover</div>
+    <div class="chip glass floaty d2" style="right:-2%;top:38%"><b class="grad">600–700 mm</b>rain a year</div>
+    <div class="chip glass floaty d3" style="left:4%;bottom:10%"><b>−8 → +26 °C</b>typical seasonal span</div>
+  </div>
+</div></section>
+
+<!-- 2. OVERVIEW -->
+<section class="slide" data-t="up"><div class="in stack" style="gap:1.4rem">
+  <span class="eyebrow rise" style="--i:0">Overview</span>
+  <h2 class="rise" style="--i:1">Two stories, <span class="grad">one landscape</span></h2>
+  <div class="cols" style="align-items:stretch">
+    <div class="big-card solid c-blue rise rim" style="--i:2" data-go="2"><div class="num">01</div><p class="tile-label">Part one</p><h2>Climate</h2><p class="tile-sub">Type, regional gradient, the four seasons, precipitation and recent warming</p></div>
+    <div class="big-card solid c-green rise rim" style="--i:3" data-go="10"><div class="num">02</div><p class="tile-label">Part two</p><h2>Forests</h2><p class="tile-sub">Key figures, tree species, national parks and old-growth woods</p></div>
+  </div>
+  <div class="agenda rise" style="--i:4">
+    <div data-go="2"><span>1</span>Climate type</div><div data-go="10"><span>8</span>Forest profile</div>
+    <div data-go="3"><span>2</span>South-west → north-east</div><div data-go="11"><span>9</span>Tree species</div>
+    <div data-go="4"><span>3</span>Four seasons</div><div data-go="12"><span>10</span>National parks</div>
+    <div data-go="8"><span>4</span>Precipitation and humidity</div><div data-go="13"><span>11</span>Takeaways and sources</div>
+  </div>
+</div></section>
+
+<!-- 3. CLIMATE TYPE -->
+<section class="slide" data-t="flip"><div class="in cols">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Climate · type</span>
+    <h2 class="rise" style="--i:1">Moderately <span class="grad">continental</span></h2>
+    <p class="lead rise" style="--i:2">The country sits between an oceanic (maritime) climate in the west and a continental one in the east.</p>
+    <ul class="bul rise" style="--i:3">
+      <li><b>Influences:</b> moist air masses from the Atlantic Ocean and the Baltic Sea</li>
+      <li><b>High humidity</b> all year round</li>
+      <li><b>Moderate temperatures</b> and fairly uniform precipitation</li>
+    </ul>
+    <button class="more rise" style="--i:4" data-more="m3">Why “transitional”? <span>＋</span></button>
+    <div class="panel" id="m3"><div class="glass">Atlantic and Baltic air softens winters and keeps the air damp, while the continental interior lets cold arrive in spells (Arctic air in winter) — so the climate is a blend rather than one pure type.</div></div>
+  </div>
+  <div class="rise" style="--i:2">
+    <div class="scene"><div class="cube">
+      <div class="face f1 c-sky"><b>Oceanic</b><span>Moist Atlantic &amp; Baltic air</span></div>
+      <div class="face f2 c-red"><b>Continental</b><span>Cold spells from the Arctic</span></div>
+      <div class="face f3 c-teal"><b>Humid</b><span>High humidity year-round</span></div>
+      <div class="face f4 c-amber"><b>Moderate</b><span>No extreme heat, mild winters</span></div>
+      <div class="face f5 c-violet"></div><div class="face f6 c-night"></div>
+    </div></div>
+    <p class="small" style="text-align:center">Hover to pause the cube</p>
+  </div>
+</div></section>
+
+<!-- 4. GRADIENT -->
+<section class="slide" data-t="diag"><div class="in cols solo">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Climate · regions</span>
+    <h2 class="rise" style="--i:1">From <span class="grad">south-west</span> to north-east</h2>
+    <div class="glass rim rise" style="--i:2">
+      <div class="glabels"><span>Brest · south-west</span><span>Vitebsk · north-east</span></div>
+      <div class="gbar" id="gbar"><div class="gknob" id="gknob"></div></div>
+      <input type="range" id="grange" min="0" max="100" value="0" aria-label="Move from Brest to Vitebsk" data-noswipe>
+      <div class="readout" style="margin-top:.4rem">
+        <div class="solid c-sky" style="padding:.9rem 1.1rem"><p class="tile-label">Winter, mid-range</p><p class="big" id="gt">≈ −4 °C</p></div>
+        <div class="solid c-night" style="padding:.9rem 1.1rem"><p class="tile-label">Snow cover</p><p class="big"><span id="gs">≈ 75</span> days</p></div>
+      </div>
+      <p id="gtxt" style="margin-top:.8rem;font-weight:600">Warmer, shorter winters, less snow cover.</p>
+      <p class="small" style="margin-top:.3rem">Slide the knob. Values are a straight-line illustration between the two cities (−3…−5 °C and 75 days → −6…−8 °C and 125 days).</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 5. WINTER -->
+<section class="slide" data-t="circle"><div class="in cols">
+  <div class="stack">
+    <figure class="photo rise" data-img="winter.jpg" style="--ar:4/3;--i:1"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg><span>Winter photo</span><code>winter.jpg</code></div><figcaption>Winter in Belarus: thaws alternate with cold spells</figcaption></figure>
+  </div>
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">❄️ Winter · Dec – Feb</span>
+    <h2 class="rise" style="--i:1">Thaws and <span class="grad">cold snaps</span></h2>
+    <div class="solid c-night rise" style="--i:2;position:relative;overflow:hidden"><div class="snow" id="snow"></div>
+      <p class="tile-label">Average temperature</p>
+      <p class="big">−3 to −5 °C <span style="font-size:.9rem;font-weight:600;opacity:.8">south-west (Brest)</span></p>
+      <p class="big" style="margin-top:.4rem">−6 to −8 °C <span style="font-size:.9rem;font-weight:600;opacity:.8">north-east (Vitebsk)</span></p>
+      <p class="tile-sub">23–27 °F in the south-west · 18–21 °F in the north-east</p></div>
+    <div class="cols" style="gap:.8rem">
+      <div class="solid c-sky rise" style="--i:3"><p class="tile-label">Snow cover</p><p class="big">75–125 days</p><p class="tile-sub">typical depth 15–30 cm</p></div>
+      <div class="glass rise" style="--i:4"><p class="tile-label" style="color:var(--indigo)">Features</p><p style="font-size:.9rem;margin-top:.2rem">Frequent thaws from Atlantic air, interrupted by occasional severe cold when Arctic air arrives.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 6. SPRING -->
+<section class="slide" data-t="cube"><div class="in cols solo">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">🌸 Spring · Mar – May</span>
+    <h2 class="rise" style="--i:1">A slow, <span class="grad-g">unstable</span> thaw</h2>
+    <p class="lead rise" style="--i:2">A gradual transition: snow melt runs through March and early April, then warming speeds up.</p>
+    <div class="glass rim rise" style="--i:3">
+      <div class="tl">
+        <div class="n"><i>1</i><b>March</b>Snow melt</div>
+        <div class="n"><i>2</i><b>Early April</b>Melt ends</div>
+        <div class="n"><i>3</i><b>Late April</b>Rapid warming</div>
+        <div class="n"><i>4</i><b>May</b>12–18 °C highs</div>
+      </div>
+    </div>
+    <div class="solid c-green rise" style="--i:4"><p class="tile-label">Daily highs in May</p><p class="big">12–18 °C</p><p class="tile-sub">54–64 °F</p></div>
+  </div>
+</div></section>
+
+<!-- 7. SUMMER -->
+<section class="slide" data-t="skew"><div class="in cols solo">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">☀️ Summer · Jun – Aug</span>
+    <h2 class="rise" style="--i:1">Warm, mild, <span class="grad">comfortable</span></h2>
+    <div class="glass rim rise" style="--i:2;position:relative;overflow:hidden"><div class="sun"></div>
+      <p class="tile-label" style="color:var(--indigo)">July is the warmest month</p>
+      <div class="scale" aria-label="Temperature scale 0 to 30 degrees Celsius">
+        <div class="band" style="left:56.7%;width:8.3%;background:linear-gradient(90deg,#ffb400,#ff8a00)"><em>July average +17…+19.5 °C</em></div>
+        <div class="band" style="left:76.7%;width:10%;background:linear-gradient(90deg,#ff8a00,#e62e63);top:.5rem"><em style="top:4.2rem;left:auto;right:0">Highs 23–26 °C</em></div>
+        <span class="tick" style="left:0%">0</span><span class="tick" style="left:33.3%">10</span><span class="tick" style="left:66.6%">20</span><span class="tick" style="left:100%">30</span>
+      </div>
+      <p class="small" style="margin-top:3.6rem">Averages 0–30 °C scale · averages 63–67 °F · highs 73–79 °F</p>
+    </div>
+    <ul class="bul rise" style="--i:3"><li>Rarely suffers from extreme heatwaves</li><li>Thunderstorms and short rain showers are common</li></ul>
+  </div>
+</div></section>
+
+<!-- 8. AUTUMN -->
+<section class="slide" data-t="curtain"><div class="in cols rev">
+  <div class="stack">
+    <figure class="photo rise" data-img="autumn.jpg" style="--ar:4/3;--i:1"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg><span>Autumn photo</span><code>autumn.jpg</code></div><figcaption>Damp mist and overcast skies are typical</figcaption></figure>
+    <div class="glass rise chart" style="--i:3;padding:.6rem 1rem">
+      <svg viewBox="0 0 400 150" width="100%" role="img" aria-label="Schematic fall in temperature from about 15 degrees in September to about zero in late November">
+        <defs><linearGradient id="ag" x1="0" x2="1"><stop offset="0" stop-color="#ffb400"/><stop offset=".6" stop-color="#ff4d6d"/><stop offset="1" stop-color="#4a6bff"/></linearGradient></defs>
+        <line x1="20" y1="118" x2="380" y2="118" stroke="rgba(20,30,70,.25)" stroke-dasharray="5 6"/>
+        <text x="22" y="134" font-size="11" fill="#566079">0 °C</text>
+        <path class="line" pathLength="1" d="M28 28 C 130 40, 220 90, 372 114"/>
+        <g class="pt"><circle cx="28" cy="28" r="8" fill="#ffb400"/><text x="42" y="22" font-size="13" font-weight="700" fill="#0b1020">Sept ≈ 15 °C</text>
+        <circle cx="372" cy="114" r="8" fill="#4a6bff"/><text x="238" y="100" font-size="13" font-weight="700" fill="#0b1020">late Nov ≈ 0 °C or below</text></g>
+      </svg>
+      <p class="small" style="text-align:center">Schematic: only the start and end values are from the data</p>
+    </div>
+  </div>
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">🍂 Autumn · Sep – Nov</span>
+    <h2 class="rise" style="--i:1">Damp, grey and <span class="grad">cooling fast</span></h2>
+    <ul class="bul rise" style="--i:2"><li><b>High humidity</b> and damp mist</li><li><b>Frequent overcast skies</b></li><li>Cools rapidly from about 15 °C in September to near-freezing or below by late November</li></ul>
+    <div class="solid c-amber rise" style="--i:3"><p class="tile-label">September</p><p class="big">≈ 15 °C</p></div>
+    <div class="solid c-blue rise" style="--i:4"><p class="tile-label">Late November</p><p class="big">around 0 °C or lower</p></div>
+  </div>
+</div></section>
+
+<!-- 9. PRECIPITATION -->
+<section class="slide" data-t="flipx"><div class="in cols solo">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Precipitation &amp; humidity</span>
+    <h2 class="rise" style="--i:1">Plenty of rain, <span class="grad">mostly in summer</span></h2>
+    <div class="cols keep" style="gap:.8rem;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch">
+      <div class="glass ringbox rise" style="--i:2"><div class="gauge"><div class="fill"></div></div><b>600–700 mm</b><span class="small">per year · 24–28 in</span></div>
+      <div class="glass ringbox rise" style="--i:3"><div class="ringwrap"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52" stroke="#1f5bff" style="--p:.7"/></svg><div class="mid">~70%</div></div><b>In warm months</b><span class="small">mostly April–October</span></div>
+      <div class="glass ringbox rise" style="--i:4"><div class="ringwrap"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52" stroke="#0fae6b" style="--p:.75"/></svg><div class="mid">70–80%</div></div><b>Air humidity</b><span class="small">average, high all year</span></div>
+    </div>
+    <p class="rise" style="--i:5">Central regions on higher ground, such as the Belarusian Ridge, get slightly more rain than the southern plains. Humidity peaks in autumn and winter.</p>
+  </div>
+</div></section>
+
+<!-- 10. TRENDS -->
+<section class="slide" data-t="spiral"><div class="in cols solo">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Recent trends</span>
+    <h2 class="rise" style="--i:1">A <span class="grad">warming</span> country</h2>
+    <p class="lead rise" style="--i:2">Over recent decades, climate warming has changed the feel of the seasons.</p>
+    <div class="switch rise" style="--i:3" id="sw" data-noswipe><div class="slider" id="swsl"></div><button class="on" data-s="0">Earlier</button><button data-s="1">Recent decades</button></div>
+    <div class="glass trends rise" style="--i:4;display:flex;flex-direction:column;gap:1rem" id="trends">
+      <div class="trend"><div class="ico">❄️</div><div class="tx"><div><b>Winters</b><br>Longer, colder</div><div><b>Winters</b><br>Milder</div></div></div>
+      <div class="trend"><div class="ico">💧</div><div class="tx"><div><b>Thaws</b><br>Rarer</div><div><b>Thaws</b><br>More frequent</div></div></div>
+      <div class="trend"><div class="ico">☀️</div><div class="tx"><div><b>Summers</b><br>Cooler</div><div><b>Summers</b><br>Slightly warmer</div></div></div>
+    </div>
+    <p class="small rise" style="--i:5">“Earlier” is the opposite of the described change, not a measured baseline.</p>
+  </div>
+</div></section>
+
+<!-- 11. FORESTS -->
+<section class="slide" data-t="blinds"><div class="in cols">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">🌲 Forests</span>
+    <h2 class="rise" style="--i:1">The <span class="grad-g">“Green Lung”</span> of Europe</h2>
+    <p class="lead rise" style="--i:2">Forests are among the country’s most important natural resources and cover over 40% of its land.</p>
+    <div class="orbs rise" style="--i:3">
+      <div class="orb floaty" style="--c1:#2ad08a;--c2:#067a50"><b data-count="40" data-dec="0" data-suf="–43%" data-start="40">40–43%</b><span>of the land area</span></div>
+      <div class="orb floaty d2" style="--c1:#3aa0ff;--c2:#1b46d6;--sh:rgba(30,80,220,.3)"><b>8.8–9 M</b><span>hectares of forest</span></div>
+      <div class="orb floaty d3" style="--c1:#ffc83d;--c2:#e98200;--sh:rgba(220,130,0,.3)"><b>100%</b><span>state-owned</span></div>
+      <div class="orb floaty" style="--c1:#b072ff;--c2:#5b34d9;--sh:rgba(100,60,220,.3)"><b>↑</b><span>cover growing for decades</span></div>
+    </div>
+  </div>
+  <div class="stack">
+    <figure class="photo rise" data-img="forest.jpg" style="--ar:4/4.2;--i:2"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg><span>Forest photo</span><code>forest.jpg</code></div><figcaption>Mixed forest typical of Belarus</figcaption></figure>
+    <p class="small rise" style="--i:4">Managed by national forestry enterprises and nature reserves. Cover has risen thanks to reforestation and sustainable management.</p>
+  </div>
+</div></section>
+
+<!-- 12. SPECIES -->
+<section class="slide" data-t="fold"><div class="in">
+  <div class="stack" style="margin-bottom:1rem"><span class="eyebrow rise" style="--i:0">Forests · species</span>
+  <h2 class="rise" style="--i:1">Between <span class="grad-g">taiga</span> and <span class="grad">broadleaf</span></h2></div>
+  <div class="cols" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="pick rise" style="--i:2" id="pick" data-noswipe></div>
+    <div class="glass rim rise" style="--i:3;text-align:center">
+      <div class="donut"><svg viewBox="0 0 200 200" id="dsvg"></svg><div class="c"><div><b id="dpct">50%</b><span id="dname">Pine</span></div></div></div>
+      <p class="small" style="margin-top:.6rem" id="dnote"></p>
+      <p class="small" style="margin-top:.5rem">Approximate shares: pine “over 50%”, birch “over 20%”; the alder/aspen/other segment is the remainder of the deciduous ~40%.</p>
+    </div>
+    <div class="stack rise" style="--i:4">
+      <div class="glass" style="padding:.9rem 1.1rem"><b id="stitle">Pine (Pinus sylvestris)</b><p id="stext" style="font-size:.9rem;margin-top:.3rem"></p></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 13. PARKS -->
+<section class="slide" data-t="wipe"><div class="in stack" style="gap:1rem">
+  <span class="eyebrow rise" style="--i:0">Forests · protected areas</span>
+  <h2 class="rise" style="--i:1">Pristine woods, <span class="grad-g">preserved</span></h2>
+  <div class="book rise" style="--i:2">
+    <div class="marks" id="marks" data-noswipe></div>
+    <div class="page">
+      <div class="park-t" id="ptext"><p class="tile-label" id="ptag" style="color:var(--green)"></p><h3 id="pname" style="font-size:1.7rem;letter-spacing:-.02em;margin:.2rem 0 .6rem"></h3><ul class="bul g" id="plist"></ul></div>
+      <figure class="photo" id="pphoto" data-img="belovezhskaya.jpg" style="--ar:4/3"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg><span>Park photo</span><code id="pfile">belovezhskaya.jpg</code></div><figcaption id="pcap"></figcaption></figure>
+    </div>
+  </div>
+</div></section>
+
+<!-- 14. TAKEAWAYS -->
+<section class="slide" data-t="drop"><div class="in cols">
+  <div class="stack">
+    <span class="eyebrow rise" style="--i:0">Takeaways</span>
+    <h2 class="rise" style="--i:1">Climate shapes <span class="grad-g">the forest</span></h2>
+    <ol class="take rise" style="--i:2">
+      <li>A mild, humid, moderately continental climate between maritime and continental zones.</li>
+      <li>Winters get colder and snowier towards the north-east, milder towards the south-west.</li>
+      <li>Precipitation is 600–700 mm a year, about 70% of it in the warm months.</li>
+      <li>Forests cover 40–43% of the land and keep growing; pine dominates, with spruce in the cold north and oak in the south.</li>
+      <li>Warming is bringing milder winters and more thaws.</li>
+    </ol>
+  </div>
+  <div class="stack">
+    <div class="glass rise" style="--i:3"><h3 style="margin-bottom:.6rem">Sources</h3>
+      <ul class="src">
+        <li>Blue Green Atlas</li><li>Climates to Travel</li><li>Studyinby.com</li><li>Belarus.by</li>
+        <li>belusadba.by</li><li>TheGlobalEconomy.com</li><li>The Tropical Rainforest</li><li>ClimateChangePost</li>
+      </ul>
+      <p class="small" style="margin-top:.6rem">Websites cited in the source text. Add full links and authors before presenting.</p>
+    </div>
+  </div>
+</div></section>
+
+</main>
+
+<nav class="nav" aria-label="Slides">
+  <button id="prev" aria-label="Previous slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 5-7 7 7 7"/></svg></button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count"></span>
+  <button id="next" aria-label="Next slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 5 7 7-7 7"/></svg></button>
+  <button id="fs" aria-label="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</nav>
+
+<script>
+(function(){
+const slides=[...document.querySelectorAll('.slide')];
+const N=slides.length;let cur=-1;
+const $=s=>document.querySelector(s);
+
+/* ---- photo loader: shows placeholder until the file exists ---- */
+function loadPhoto(fig,src){
+  fig.classList.remove('ok');
+  const old=fig.querySelector('img');if(old)old.remove();
+  fig.dataset.img=src;
+  const img=new Image();img.alt=fig.querySelector('figcaption')?fig.querySelector('figcaption').textContent:'';
+  img.onload=()=>fig.classList.add('ok');
+  img.onerror=()=>img.remove();
+  img.src=src;fig.prepend(img);
+}
+document.querySelectorAll('.photo[data-img]').forEach(f=>loadPhoto(f,f.dataset.img));
+
+/* ---- navigation ---- */
+const dots=$('#dots');
+slides.forEach((_,i)=>{const b=document.createElement('b');b.onclick=()=>go(i);dots.appendChild(b)});
+function go(n,fromHash){
+  n=Math.max(0,Math.min(N-1,n));if(n===cur)return;
+  cur=n;
+  slides.forEach((s,i)=>{s.classList.toggle('active',i===n);s.classList.toggle('past',i<n);s.setAttribute('aria-hidden',i!==n)});
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i===n));
+  $('#count').textContent=(n+1)+' / '+N;
+  $('#bar').style.width=((n+1)/N*100)+'%';
+  $('#prev').disabled=n===0;$('#next').disabled=n===N-1;
+  document.querySelectorAll('.panel.open').forEach(p=>p.classList.remove('open'));
+  if(!fromHash)history.replaceState(null,'','#'+(n+1));
+  runCounters(slides[n]);
+}
+const next=()=>go(cur+1),prev=()=>go(cur-1);
+$('#next').onclick=next;$('#prev').onclick=prev;
+$('#fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev()}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);
+  else if(e.key==='f'||e.key==='F')$('#fs').click();
+});
+let wl=0;addEventListener('wheel',e=>{
+  if(e.target.closest('.in')&&innerWidth<=860)return;
+  const t=Date.now();if(t-wl<900||Math.abs(e.deltaY)<30)return;wl=t;e.deltaY>0?next():prev();
+},{passive:true});
+let sx=0,sy=0,sk=false;
+addEventListener('touchstart',e=>{sk=!!e.target.closest('[data-noswipe]');sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{if(sk)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3)dx<0?next():prev()},{passive:true});
+document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>go(+el.dataset.go)));
+document.querySelectorAll('[data-more]').forEach(b=>b.addEventListener('click',()=>{
+  const p=document.getElementById(b.dataset.more);const o=p.classList.toggle('open');b.querySelector('span').textContent=o?'－':'＋'}));
+setTimeout(()=>$('#hint').classList.add('off'),5500);
+
+/* ---- count-up ---- */
+function runCounters(s){s.querySelectorAll('[data-count]').forEach(el=>{
+  const to=+el.dataset.count,from=+el.dataset.start||0,suf=el.dataset.suf||'',t0=performance.now();
+  (function f(t){const k=Math.min(1,(t-t0)/1300),e=1-Math.pow(1-k,3);el.textContent=Math.round(from*(1-e)+to*e)+suf;if(k<1)requestAnimationFrame(f)})(t0);
+  el.textContent=from+suf;
+})}
+
+/* ---- snow ---- */
+const snow=$('#snow');for(let i=0;i<26;i++){const d=document.createElement('i'),s=2+Math.random()*4;
+  d.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${6+Math.random()*7}s;animation-delay:${-Math.random()*10}s`;snow.appendChild(d)}
+
+/* ---- slide 4 gradient slider ---- */
+const gr=$('#grange'),gk=$('#gknob');
+function gUpdate(){const t=gr.value/100;
+  gk.style.left=(t*100)+'%';
+  const temp=-4-3*t;$('#gt').textContent='≈ −'+Math.abs(temp).toFixed(1).replace('.0','')+' °C';
+  $('#gs').textContent='≈ '+Math.round(75+50*t);
+  $('#gtxt').textContent=t<.34?'Warmer, shorter winters, less snow cover.':t<.67?'A gradual change from mild to harsh winters.':'Colder, longer winters, deeper snowpack.';}
+gr.addEventListener('input',gUpdate);gUpdate();
+
+/* ---- slide 10 toggle ---- */
+const sw=$('#sw'),sl=$('#swsl'),tr=$('#trends');
+function swSet(i){[...sw.querySelectorAll('button')].forEach((b,j)=>b.classList.toggle('on',j===i));
+  const b=sw.querySelectorAll('button')[i];sl.style.left=b.offsetLeft+'px';sl.style.width=b.offsetWidth+'px';tr.classList.toggle('warm',i===1)}
+sw.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>swSet(i));
+addEventListener('load',()=>swSet(0));addEventListener('resize',()=>swSet(tr.classList.contains('warm')?1:0));
+
+/* ---- slide 12 species ---- */
+const sp=[
+ {k:'pine',n:'Pine',pct:50,col:'#0f8a5a',lab:'over 50%',t:'Pine (Pinus sylvestris)',x:'Dominates over half of all forests. Grows exceptionally well in the sandy soils of the south and centre.',img:'pine.jpg',cap:'Scots pine forest'},
+ {k:'spruce',n:'Spruce',pct:10,col:'#1b46d6',lab:'about 10%',t:'Spruce (Picea abies)',x:'About 10% of forests; predominant in the colder, moist north (Vitebsk area).',img:'spruce.jpg',cap:'Spruce forest'},
+ {k:'birch',n:'Birch',pct:20,col:'#ffb400',lab:'over 20%',t:'Birch (Betula)',x:'Makes up over 20% of the forest area — the leading small-leaved species.',img:'birch.jpg',cap:'Birch grove'},
+ {k:'alder',n:'Alder & aspen',pct:16,col:'#ff4d6d',lab:'rest of deciduous',t:'Alder and aspen',x:'Found mainly in lowlands, river valleys and marshy zones — e.g. black alder groves in Polesia.',img:'alder.jpg',cap:'Black alder in a wet forest'},
+ {k:'oak',n:'Oak & hardwoods',pct:4,col:'#8b3df0',lab:'about 4%',t:'Oak, hornbeam, ash, maple',x:'Broad-leaved species, about 4% of forests. Native oak groves (Quercus robur) are concentrated in southern Polesia.',img:'oak.jpg',cap:'Oak grove'}
+];
+const pick=$('#pick'),dsvg=$('#dsvg');const C=2*Math.PI*80;
+sp.forEach((s,i)=>{const b=document.createElement('button');
+  b.innerHTML=`<i class="sw" style="background:${s.col}"></i><span><b>${s.n}</b><small>${s.lab}</small></span>`;b.onclick=()=>spSel(i);pick.appendChild(b)});
+let off=0;sp.forEach(s=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',100);c.setAttribute('cy',100);c.setAttribute('r',80);c.setAttribute('stroke',s.col);
+  const len=C*s.pct/100;c.setAttribute('stroke-dasharray',`${Math.max(0,len-2)} ${C}`);c.setAttribute('stroke-dashoffset',-off);off+=len;s.el=c;dsvg.appendChild(c)});
+function spSel(i){const s=sp[i];
+  [...pick.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+  sp.forEach((q,j)=>{q.el.style.opacity=j===i?1:.28;q.el.style.strokeWidth=j===i?28:20});
+  $('#dpct').textContent=(s.k==='pine'?'50%+':s.k==='birch'?'20%+':s.k==='spruce'||s.k==='oak'?'~'+s.pct+'%':'~'+s.pct+'%');
+  $('#dname').textContent=s.n;$('#dnote').textContent=s.lab==='rest of deciduous'?'The remainder of the deciduous ~40%':'Share of all forests: '+s.lab;
+  $('#stitle').textContent=s.t;$('#stext').textContent=s.x;
+  }
+spSel(0);
+
+/* ---- slide 13 parks ---- */
+const parks=[
+ {n:'Belovezhskaya Pushcha',col:'linear-gradient(135deg,#0fae6b,#078c5c)',tag:'UNESCO World Heritage Site',img:'belovezhskaya.jpg',cap:'Belovezhskaya Pushcha primeval forest',
+  l:['One of the last and largest remaining parts of the primeval forest that once stretched across the European Plain','Famous for ancient oaks, some over 600 years old','Stronghold of the European bison (zubr)']},
+ {n:'Pripyatsky',col:'linear-gradient(135deg,#1bd0e0,#0a7fb8)',tag:'Polesia · “Amazon of Europe”',img:'pripyatsky.jpg',cap:'Floodplains and swamp forests of Polesia',
+  l:['Floodplains, swamp forests and oak groves','Extraordinary biodiversity','Located in Polesia, in the south']},
+ {n:'Berezinsky Reserve',col:'linear-gradient(135deg,#a45cff,#5b34d9)',tag:'Biosphere reserve',img:null,cap:'Pine forest and raised bog',
+  l:['Unique combination of pine forests, raised bogs and wetlands','Home to brown bears, wolves and lynxes','A crucial protected area']},
+ {n:'Narochansky',col:'linear-gradient(135deg,#ffc83d,#ff8a00)',tag:'National park',img:null,cap:'Narochansky National Park',
+  l:['One of the country’s national parks protecting woodland ecosystems','Located in the north-west, around Lake Naroch','Add details from your own source here']}
+];
+const marks=$('#marks');
+parks.forEach((p,i)=>{const b=document.createElement('button');b.className='mark';b.style.background=p.col;b.textContent=p.n;b.onclick=()=>pk(i);marks.appendChild(b)});
+function pk(i){const p=parks[i],t=$('#ptext');
+  [...marks.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+  t.classList.add('swap');
+  setTimeout(()=>{$('#ptag').textContent=p.tag;$('#pname').textContent=p.n;
+    $('#plist').innerHTML=p.l.map(x=>`<li>${x}</li>`).join('');
+    const fg=$('#pphoto');fg.style.display=p.img?'':'none';document.querySelector('.page').classList.toggle('noph',!p.img);if(p.img){$('#pcap').textContent=p.cap;$('#pfile').textContent=p.img;loadPhoto(fg,p.img)}t.classList.remove('swap')},i===0&&!t.dataset.init?0:220);
+  t.dataset.init=1;}
+pk(0);
+
+/* ---- start ---- */
+const h=parseInt(location.hash.slice(1));
+requestAnimationFrame(()=>requestAnimationFrame(()=>go(isNaN(h)?0:h-1,true)));
+})();
+</script>
+</body>
+</html>
